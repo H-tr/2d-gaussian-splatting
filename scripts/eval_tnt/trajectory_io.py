@@ -9,8 +9,14 @@ class CameraPose:
         self.pose = mat
 
     def __str__(self):
-        return ("Metadata : " + " ".join(map(str, self.metadata)) + "\n" +
-                "Pose : " + "\n" + np.array_str(self.pose))
+        return (
+            "Metadata : "
+            + " ".join(map(str, self.metadata))
+            + "\n"
+            + "Pose : "
+            + "\n"
+            + np.array_str(self.pose)
+        )
 
 
 def convert_trajectory_to_pointcloud(traj):
@@ -40,6 +46,5 @@ def write_trajectory(traj, filename):
         for x in traj:
             p = x.pose.tolist()
             f.write(" ".join(map(str, x.metadata)) + "\n")
-            f.write("\n".join(
-                " ".join(map("{0:.12f}".format, p[i])) for i in range(4)))
+            f.write("\n".join(" ".join(map("{0:.12f}".format, p[i])) for i in range(4)))
             f.write("\n")

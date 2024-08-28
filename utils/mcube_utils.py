@@ -3,7 +3,7 @@
 # SVIP research group, https://github.com/svip-lab
 # All rights reserved.
 #
-# This software is free for non-commercial, research and evaluation use 
+# This software is free for non-commercial, research and evaluation use
 # under the terms of the LICENSE.md file.
 #
 # For inquiries contact  huangbb@shanghaitech.edu.cn
@@ -13,6 +13,8 @@ import numpy as np
 import torch
 import trimesh
 from skimage import measure
+
+
 # modified from here https://github.com/autonomousvision/sdfstudio/blob/370902a10dbef08cb3fe4391bd3ed1e227b5c165/nerfstudio/utils/marching_cubes.py#L201
 def marching_cubes_with_contraction(
     sdf,
@@ -52,7 +54,10 @@ def marching_cubes_with_contraction(
                 z = torch.linspace(z_min, z_max, cropN).cuda()
 
                 xx, yy, zz = torch.meshgrid(x, y, z, indexing="ij")
-                points = torch.tensor(torch.vstack([xx.ravel(), yy.ravel(), zz.ravel()]).T, dtype=torch.float).cuda()
+                points = torch.tensor(
+                    torch.vstack([xx.ravel(), yy.ravel(), zz.ravel()]).T,
+                    dtype=torch.float,
+                ).cuda()
 
                 @torch.no_grad()
                 def evaluate(points):
@@ -81,7 +86,7 @@ def marching_cubes_with_contraction(
                     verts = verts + np.array([x_min, y_min, z_min])
                     meshcrop = trimesh.Trimesh(verts, faces, normals)
                     meshes.append(meshcrop)
-                
+
                 print("finished one block")
 
     combined = trimesh.util.concatenate(meshes)
@@ -89,7 +94,11 @@ def marching_cubes_with_contraction(
 
     # inverse contraction and clipping the points range
     if inv_contraction is not None:
-        combined.vertices = inv_contraction(torch.from_numpy(combined.vertices).float().cuda()).cpu().numpy()
+        combined.vertices = (
+            inv_contraction(torch.from_numpy(combined.vertices).float().cuda())
+            .cpu()
+            .numpy()
+        )
         combined.vertices = np.clip(combined.vertices, -max_range, max_range)
-    
+
     return combined
