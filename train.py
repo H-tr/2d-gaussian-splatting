@@ -32,6 +32,7 @@ except ImportError:
 from PIL import Image
 import numpy as np
 
+using_depth = False
 
 def training(
     dataset,
@@ -94,39 +95,42 @@ def training(
             1.0 - ssim(image, gt_image)
         )
 
-        # Hardcode to find the depth image
-        img_name = viewpoint_cam.image_name
-        depth_path = os.path.join(dataset.source_path, "depth", img_name + ".png")
-        # Read the depth image and visualize it
-        est_depth = (
-            torch.from_numpy(np.array(Image.open(depth_path).convert("L")))
-            .float()
-            .cuda()
-            / 255.0
-        )
+        if using_depth:
+            # Hardcode to find the depth image
+            img_name = viewpoint_cam.image_name
+            depth_path = os.path.join(dataset.source_path, "depth", img_name + ".png")
+            # Read the depth image and visualize it
+            est_depth = (
+                torch.from_numpy(np.array(Image.open(depth_path).convert("L")))
+                .float()
+                .cuda()
+                / 255.0
+            )
 
-        # Torch reshape the surf_depth from (1, H, W) to (H, W)
-        surf_depth = surf_depth.squeeze(0)
+            # Torch reshape the surf_depth from (1, H, W) to (H, W)
+            surf_depth = surf_depth.squeeze(0)
 
-        # print(est_depth.shape)
-        # print(surf_depth.shape)
+            # print(est_depth.shape)
+            # print(surf_depth.shape)
 
-        # print(est_depth)
-        # print(surf_depth)
+            # print(est_depth)
+            # print(surf_depth)
 
-        # Save est depth in current pwd
-        # est_depth_path = os.path.join(os.getcwd(), "est_depth.png")
-        # Image.fromarray((est_depth.cpu().numpy() * 255).astype(np.uint8)).save(est_depth_path)
-        # Save surf depth in current pwd
-        # surf_depth_path = os.path.join(os.getcwd(), "surf_depth.png")
-        # Image.fromarray((surf_depth.cpu().detach().numpy() * 255).astype(np.uint8)).save(surf_depth_path)
+            # Save est depth in current pwd
+            # est_depth_path = os.path.join(os.getcwd(), "est_depth.png")
+            # Image.fromarray((est_depth.cpu().numpy() * 255).astype(np.uint8)).save(est_depth_path)
+            # Save surf depth in current pwd
+            # surf_depth_path = os.path.join(os.getcwd(), "surf_depth.png")
+            # Image.fromarray((surf_depth.cpu().detach().numpy() * 255).astype(np.uint8)).save(surf_depth_path)
 
-        # Depth loss
-        depth_loss = (
-            local_pearson_loss(surf_depth, est_depth, 256, 0.5)
-            if iteration > 7000
-            else 0.0
-        )
+            # Depth loss
+            depth_loss = (
+                local_pearson_loss(surf_depth, est_depth, 128, 0.5)
+                if iteration > 10000
+                else 0.0
+            )
+        else:
+            depth_loss = 0
 
         # regularization
         lambda_normal = opt.lambda_normal if iteration > 7000 else 0.0
